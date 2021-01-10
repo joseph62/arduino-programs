@@ -9,7 +9,7 @@ import os
 
 
 def create_rust_project(name):
-    subprocess.run(("cargo", "new", "--bin", name), check=True, cwd="src")
+    subprocess.run(("cargo", "new", "--bin", name), check=True, cwd="sketches")
 
 
 def parse_arguments(args):
@@ -19,7 +19,7 @@ def parse_arguments(args):
 
 
 def update_cargo_toml(name):
-    with open(f"src/{name}/Cargo.toml", "r") as f:
+    with open(f"sketches/{name}/Cargo.toml", "r") as f:
         cargo_lines = [line.strip() for line in f]
 
     with open(f"rust_template/Partial_Cargo.toml", "r") as f:
@@ -27,7 +27,7 @@ def update_cargo_toml(name):
 
     cargo_lines.extend(new_cargo_lines)
 
-    with open(f"src/{name}/Cargo.toml", "w") as f:
+    with open(f"sketches/{name}/Cargo.toml", "w") as f:
         f.write("\n".join(cargo_lines))
 
 
@@ -42,12 +42,12 @@ def main(args):
 
     update_cargo_toml(args.name)
 
-    shutil.copytree("rust_template/.cargo", f"src/{args.name}/.cargo")
+    shutil.copytree("rust_template/.cargo", f"sketches/{args.name}/.cargo")
 
     shutil.copy(
-        "rust_template/avr-atmega328p.json", f"src/{args.name}/avr-atmega328p.json"
+        "rust_template/avr-atmega328p.json", f"sketches/{args.name}/avr-atmega328p.json"
     )
-    shutil.copy("rust_template/src/main.rs", f"src/{args.name}/src/main.rs")
+    shutil.copy("rust_template/src/main.rs", f"sketches/{args.name}/src/main.rs")
 
     return 0
 
