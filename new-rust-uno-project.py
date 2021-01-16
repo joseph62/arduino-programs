@@ -14,7 +14,7 @@ def create_rust_project(name):
 
 def parse_arguments(args):
     parser = argparse.ArgumentParser(description="Create another rust uno project")
-    parser.add_argument("name", help="The name of the new project", required=True)
+    parser.add_argument("name", help="The name of the new project")
     return parser.parse_args(args)
 
 
