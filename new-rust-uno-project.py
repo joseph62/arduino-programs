@@ -6,10 +6,13 @@ import signal
 import subprocess
 import shutil
 import os
-
-
-def create_rust_project(name):
-    subprocess.run(("cargo", "new", "--bin", name), check=True, cwd="sketches")
+from common import (
+    PROJECT_ROOT,
+    TEMPLATE_ROOT,
+    get_config,
+    override_rust_toolchain,
+    get_project_directory,
+)
 
 
 def parse_arguments(args):
@@ -18,36 +21,48 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def update_cargo_toml(name):
-    with open(f"sketches/{name}/Cargo.toml", "r") as f:
+def create_rust_project(name):
+    subprocess.run(("cargo", "new", "--bin", name), check=True, cwd=PROJECT_ROOT)
+
+
+def update_cargo_toml(project_directory):
+    with open(f"{project_directory}/Cargo.toml", "r") as f:
         cargo_lines = [line.strip() for line in f]
 
-    with open(f"rust_template/Partial_Cargo.toml", "r") as f:
+    with open(f"{TEMPLATE_ROOT}/Partial_Cargo.toml", "r") as f:
         new_cargo_lines = [line.strip() for line in f]
 
     cargo_lines.extend(new_cargo_lines)
 
-    with open(f"sketches/{name}/Cargo.toml", "w") as f:
+    with open(f"{project_directory}/Cargo.toml", "w") as f:
         f.write("\n".join(cargo_lines))
 
 
 def main(args):
     args = parse_arguments(args)
+    config = get_config()
 
-    if os.path.exists(args.name):
+    name = args.name
+    project_directory = get_project_directory(name)
+    rust_toolchain = config.rust_toolchain
+
+    if os.path.exists(project_directory):
         print(f"Project '{name}' already exists")
         return 1
 
-    create_rust_project(args.name)
+    create_rust_project(name)
 
-    update_cargo_toml(args.name)
+    update_cargo_toml(project_directory)
 
-    shutil.copytree("rust_template/.cargo", f"sketches/{args.name}/.cargo")
+    shutil.copytree(f"{TEMPLATE_ROOT}/.cargo", f"{project_directory}/.cargo")
 
     shutil.copy(
-        "rust_template/avr-atmega328p.json", f"sketches/{args.name}/avr-atmega328p.json"
+        f"{TEMPLATE_ROOT}/avr-atmega328p.json",
+        f"{project_directory}/avr-atmega328p.json",
     )
-    shutil.copy("rust_template/src/main.rs", f"sketches/{args.name}/src/main.rs")
+    shutil.copy(f"{TEMPLATE_ROOT}/src/main.rs", f"{project_directory}/src/main.rs")
+
+    override_rust_toolchain(rust_toolchain, project_directory)
 
     return 0
 
